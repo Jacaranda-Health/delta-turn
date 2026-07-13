@@ -1,0 +1,16 @@
+version: 2
+
+sources:
+  - name: turn
+    schema: turn_kenya
+    tables:
+      - name: contacts
+        identifier: ciqyuq_contacts
+      - name: messages
+        identifier: ciqyuq_messages
+      - name: message_statuses
+        identifier: ciqyuq_message_statuses
+      - name: flow_results_packages
+        identifier: ciqyuq_flow_results_packages
+      - name: flow_results_responses
+        identifier: ciqyuq_flow_results_responses
