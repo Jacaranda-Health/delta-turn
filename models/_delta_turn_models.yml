@@ -1,0 +1,156 @@
+version: 2
+
+# Documentation + tests for the delta_turn DELTA metrics pipeline.
+# Place this in models/ (e.g. models/_delta_turn_models.yml). Extend as models are added.
+
+models:
+  # ---------------------------------------------------------------------------
+  # MARTS (BI-facing)
+  # ---------------------------------------------------------------------------
+  - name: mart_delta_kpis_daily
+    description: >
+      Daily DELTA product & engagement KPIs, BI-ready for the Go-Live dashboard.
+      One row per calendar day. Source of the headline metrics: enrolled users
+      (cumulative), message success rate, downtime rate, and response latency.
+    columns:
+      - name: day
+        description: Calendar date the metrics are aggregated to.
+        data_tests:
+          - not_null
+          - unique
+      - name: enrolled_cumulative
+        description: >
+          Cumulative count of distinct contacts who had initiated any DELTA flow
+          on or before this day (monotonic; latest value = current total enrolled).
+        data_tests:
+          - not_null
+      - name: outbound_msgs
+        description: Count of outbound WhatsApp messages sent on this day.
+      - name: message_success_rate
+        description: >
+          Proportion of outbound messages that reached 'delivered' or 'read'
+          (delivered / sent) on this day. 1.0 = all delivered.
+      - name: failed_msgs
+        description: Outbound messages with a delivery error on this day (numerator for downtime).
+      - name: downtime_rate
+        description: Failed operations / total outbound operations on this day.
+      - name: median_latency_seconds
+        description: >
+          Median seconds from a user's inbound message to DELTA's first outbound
+          reply, for sessions triggered on this day.
+
+  - name: mart_module_completion_daily
+    description: >
+      Daily module-completion funnel per canonical DELTA module. Feeds the
+      "Module Progress" visual. Completion is defined as a contact having
+      answered all distinct questions that exist in the module (agreed proxy,
+      pending flow-level completion markers from JHOSS).
+    columns:
+      - name: day
+        description: Calendar date the cumulative counts are as-of.
+        data_tests:
+          - not_null
+      - name: module_name
+        description: Canonical module the flows roll up to.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['PPH', 'Communication', 'RMC', 'Climate & Health']
+      - name: cumulative_started
+        description: Distinct contacts who had started the module (>=1 response) on/before this day.
+      - name: cumulative_completed
+        description: Distinct contacts who completed the module (answered all its questions) on/before this day.
+      - name: completion_rate
+        description: cumulative_completed / cumulative_started.
+
+  # ---------------------------------------------------------------------------
+  # INTERMEDIATE
+  # ---------------------------------------------------------------------------
+  - name: int_flow_responses
+    description: >
+      Unnested Turn Flow Results. Each row is one answered question:
+      (package/flow, contact, session, question, answer, timestamp).
+    columns:
+      - name: package_id
+        description: Turn Flow Results package (flow) id.
+        data_tests:
+          - not_null
+      - name: contact_id
+        description: Contact identifier from the flow-response tuple (used for enrolled-users).
+      - name: session_id
+        description: Flow run / session id (one journey through a flow).
+      - name: question_key
+        description: Question / step key that was answered.
+      - name: response_ts
+        description: Timestamp the response was recorded.
+
+  - name: int_module_responses
+    description: >
+      Flow responses classified into the 4 canonical DELTA modules via title
+      pattern; test/copy/duplicate flows are excluded. Grain unchanged from
+      int_flow_responses (one row per answered question).
+    columns:
+      - name: module_name
+        description: Canonical module (PPH, Communication, RMC, Climate & Health).
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['PPH', 'Communication', 'RMC', 'Climate & Health']
+      - name: contact_id
+        description: Contact identifier.
+      - name: session_id
+        description: Flow session id.
+      - name: question_key
+        description: Question / step key answered within the module.
+
+  - name: int_message_events
+    description: >
+      One row per WhatsApp message with normalized direction and user key.
+      Inbound = _vnd IS NULL, user_key = wa_id parsed from the contacts JSON;
+      outbound = user_key is the recipient phone (`to`). Enables session/latency
+      pairing and message-volume metrics.
+    columns:
+      - name: message_id
+        description: WhatsApp message id.
+      - name: direction
+        description: "'inbound' (user) or 'outbound' (DELTA)."
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['inbound', 'outbound']
+      - name: user_key
+        description: Normalized user identifier (phone/wa_id) shared across inbound and outbound.
+      - name: event_ts
+        description: Message timestamp (parsed from Unix epoch seconds).
+      - name: day
+        description: Calendar date of the message.
+
+  - name: int_delta_sessions
+    description: >
+      Response latency per user trigger. For each inbound message, the first
+      outbound reply to the same user (ASOF join on user_key, out_ts >= in_ts).
+      latency_seconds = seconds between the two.
+    columns:
+      - name: day
+        description: Date of the inbound trigger.
+      - name: user_key
+        description: User identifier the pairing is on.
+      - name: latency_seconds
+        description: Seconds from user trigger to DELTA's first reply.
+
+  # ---------------------------------------------------------------------------
+  # STAGING (deduped from Turn raw sources)
+  # ---------------------------------------------------------------------------
+  - name: stg_turn__messages
+    description: Deduped WhatsApp messages (ReplacingMergeTree, latest per message id).
+  - name: stg_turn__message_statuses
+    description: Deduped message delivery statuses (ReplacingMergeTree, latest per row_hash).
+  - name: stg_turn__contacts
+    description: Deduped Turn contacts (latest per id).
+  - name: stg_turn__flow_results_packages
+    description: Deduped Flow Results packages (flow definitions; latest per id).
+  - name: stg_turn__flow_results_responses
+    description: Deduped Flow Results response pages (latest per page_id).
+
