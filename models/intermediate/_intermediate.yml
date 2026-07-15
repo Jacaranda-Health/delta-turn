@@ -1,0 +1,26 @@
+version: 2
+
+models:
+  - name: int_message_events
+    description: One row per message with normalized direction and user key.
+    columns:
+      - name: direction
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['inbound', 'outbound']
+  - name: int_module_responses
+    description: Flow responses classified into the 4 canonical DELTA modules.
+    columns:
+      - name: module_name
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['PPH', 'Communication', 'RMC', 'Climate & Health']
+  - name: int_flow_responses
+    description: Unnested Flow Results — one row per answered question.
+  - name: int_message_status
+    description: Furthest delivery status per message id.
+  - name: int_delta_sessions
+    description: Response latency per user trigger via ASOF join.
