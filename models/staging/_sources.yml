@@ -2,15 +2,21 @@ version: 2
 
 sources:
   - name: turn
+    description: Read-only raw Turn.io (WhatsApp) data synced by Airbyte into turn_kenya.
     schema: turn_kenya
     tables:
       - name: contacts
         identifier: ciqyuq_contacts
+        description: Raw Turn contacts (mutable; keyed by id, cursor updated_at).
       - name: messages
         identifier: ciqyuq_messages
+        description: Raw WhatsApp messages, inbound and outbound.
       - name: message_statuses
         identifier: ciqyuq_message_statuses
+        description: WhatsApp delivery status webhooks (redeliverable; keyed by row_hash).
       - name: flow_results_packages
         identifier: ciqyuq_flow_results_packages
+        description: Flow Results package (flow) definitions.
       - name: flow_results_responses
         identifier: ciqyuq_flow_results_responses
+        description: Flow Results response pages (arrays of survey responses).
