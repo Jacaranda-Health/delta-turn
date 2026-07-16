@@ -1,12 +1,12 @@
 version: 2
 
 models:
-  - name: mart_delta_kpis_daily
+  - name: delta_kpis_daily
     description: Daily DELTA KPIs for Power BI (enrolled, success, downtime, latency).
     columns:
       - name: day
         data_tests: [not_null, unique]
-  - name: mart_module_completion_daily
+  - name: module_completion_daily
     description: Daily module completion funnel per canonical module.
     columns:
       - name: module_name

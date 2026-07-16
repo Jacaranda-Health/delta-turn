@@ -41,3 +41,7 @@ models:
       +materialized: table
     marts:
       +materialized: table
+    utilities:
+      +materialized: table
+    metrics:
+      +materialized: table
