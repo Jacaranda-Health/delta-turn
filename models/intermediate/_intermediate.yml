@@ -17,7 +17,7 @@ models:
           - not_null
           - accepted_values:
               arguments:
-                values: ['PPH', 'Communication', 'RMC', 'Climate & Health']
+                values: ['PPH', 'Communication', 'RMC', 'APH']
   - name: int_flow_responses
     description: Unnested Flow Results — one row per answered question.
   - name: int_message_status

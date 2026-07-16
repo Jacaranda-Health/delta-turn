@@ -46,7 +46,7 @@ models:
           - not_null
           - accepted_values:
               arguments:
-                values: ['PPH', 'Communication', 'RMC', 'Climate & Health']
+                values: ['PPH', 'Communication', 'RMC', 'APH']
       - name: cumulative_started
         description: Distinct contacts who had started the module on/before this day.
       - name: cumulative_completed

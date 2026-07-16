@@ -14,17 +14,16 @@ with resp as (
 classified as (
     select
         *,
-        multiIf(
-            title ILIKE '%rmc%',                                'RMC',
-            title ILIKE '%clim%',                               'Climate & Health',
-            (title ILIKE '%comms_%' OR title ILIKE '%comm_intro%'), 'Communication',
-            (title ILIKE '%pph%' OR title ILIKE '%amstl%' OR title ILIKE '%4ts%'
-             OR title ILIKE '%blood loss%' OR title ILIKE '%essential skills%'
-             OR title ILIKE '%emotive%' OR title ILIKE '%referral%'
-             OR title ILIKE '%pphtypes%'),                      'PPH',
-            NULL
-        ) as module_name
-    from resp
+multiIf(
+        title ILIKE '%rmc%',                                'RMC',
+        match(lower(title), '\\baph'),                      'APH',
+        (title ILIKE '%comms_%' OR title ILIKE '%comm_intro%'), 'Communication',
+        (title ILIKE '%pph%' OR title ILIKE '%amstl%' OR title ILIKE '%4ts%'
+         OR title ILIKE '%blood loss%' OR title ILIKE '%essential skills%'
+         OR title ILIKE '%emotive%' OR title ILIKE '%referral%'
+         OR title ILIKE '%pphtypes%'),                      'PPH',
+        NULL
+    ) as module_name    from resp
 )
 
 select

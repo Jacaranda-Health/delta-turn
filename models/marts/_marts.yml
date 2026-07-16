@@ -13,4 +13,4 @@ models:
         data_tests:
           - accepted_values:
               arguments:
-                values: ['PPH', 'Communication', 'RMC', 'Climate & Health']
+                values: ['PPH', 'Communication', 'RMC', 'APH']
