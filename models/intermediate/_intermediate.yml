@@ -9,6 +9,14 @@ models:
           - accepted_values:
               arguments:
                 values: ['inbound', 'outbound']
+      - name: event_ts
+        description: >
+          Parsed message timestamp. Should never be null — a null means the upstream
+          epoch field changed type (e.g. String -> Decimal) and the parse silently failed.
+        data_tests:
+          - not_null
+      - name: user_key
+        description: Normalized phone/wa_id shared across inbound and outbound.
   - name: int_module_responses
     description: Flow responses classified into the 4 canonical DELTA modules.
     columns:

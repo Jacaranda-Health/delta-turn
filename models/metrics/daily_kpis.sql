@@ -52,7 +52,7 @@ select
     coalesce(round(md.delivered_msgs / nullIf(md.sent_msgs, 0), 3), 0)  as message_success_rate,
     coalesce(md.failed_msgs, 0)                                         as failed_msgs,
     coalesce(round(md.failed_msgs / nullIf(md.outbound_msgs, 0), 3), 0) as downtime_rate,
-    coalesce(ld.median_latency_seconds, 0)                             as median_latency_seconds
+    ld.median_latency_seconds                            as median_latency_seconds
 from spine sp
 left join enroll_cum ec on sp.day = ec.day
 left join msg_daily  md on sp.day = md.day
