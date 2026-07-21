@@ -1,5 +1,5 @@
-{{ config(materialized='table', engine='MergeTree()',
-          order_by='day', settings={'allow_nullable_key': 1}) }}
+{{ config(materialized='table', engine='MergeTree()', order_by='day',
+          settings={'allow_nullable_key': 1}) }}
 
 with enroll as (
     select contact_id, min(toDate(response_ts)) as enroll_day
@@ -28,10 +28,16 @@ lat_daily as (
     where latency_seconds between 0 and {{ var('max_reply_window_seconds', 3600) }}
     group by day
 ),
+bounds as (
+    select
+        least((select min(enroll_day) from enroll), (select min(day) from msg_daily))    as start_day,
+        greatest((select max(enroll_day) from enroll), (select max(day) from msg_daily)) as end_day
+),
 spine as (
-    select day from msg_daily
-    union distinct select enroll_day from enroll
-    union distinct select day from lat_daily
+    select d.date_day as day
+    from {{ ref('dim_date') }} d
+    cross join bounds b
+    where d.date_day between b.start_day and b.end_day
 ),
 enroll_cum as (
     select sp.day, uniqExact(e.contact_id) as enrolled_cumulative
@@ -40,13 +46,13 @@ enroll_cum as (
     group by sp.day
 )
 select
-    sp.day as day,
-    ec.enrolled_cumulative,
-    md.outbound_msgs,
-    round(md.delivered_msgs / nullIf(md.sent_msgs, 0), 3)  as message_success_rate,
-    md.failed_msgs,
-    round(md.failed_msgs / nullIf(md.outbound_msgs, 0), 3) as downtime_rate,
-    ld.median_latency_seconds
+    sp.day                                                              as day,
+    coalesce(ec.enrolled_cumulative, 0)                                 as enrolled_cumulative,
+    coalesce(md.outbound_msgs, 0)                                       as outbound_msgs,
+    coalesce(round(md.delivered_msgs / nullIf(md.sent_msgs, 0), 3), 0)  as message_success_rate,
+    coalesce(md.failed_msgs, 0)                                         as failed_msgs,
+    coalesce(round(md.failed_msgs / nullIf(md.outbound_msgs, 0), 3), 0) as downtime_rate,
+    ld.median_latency_seconds                            as median_latency_seconds
 from spine sp
 left join enroll_cum ec on sp.day = ec.day
 left join msg_daily  md on sp.day = md.day

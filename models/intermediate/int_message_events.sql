@@ -1,26 +1,36 @@
 {{ config(materialized='table', engine='MergeTree()',
           order_by='(user_key, event_ts)', settings={'allow_nullable_key': 1}) }}
 
-with parsed as (
+with raw as (
     select
         id as message_id,
         _vnd,
         contacts,
         `to`,
-        -- epoch may be seconds (10-digit) or milliseconds (13-digit); normalise ms -> s
-        toDateTime64(toUInt64OrNull(timestamp) / if(length(timestamp) >= 13, 1000, 1), 3) as event_ts
+        -- works whether Airbyte types this as String or Decimal/numeric
+        toFloat64OrNull(toString(timestamp)) as ts_epoch
     from {{ ref('stg_turn__messages') }}
+),
+
+parsed as (
+    select
+        message_id,
+        _vnd,
+        contacts,
+        `to`,
+        -- epoch seconds vs milliseconds detected by magnitude (ms ≈ 1.7e12, s ≈ 1.7e9)
+        toDateTime64(ts_epoch / if(ts_epoch > 100000000000, 1000, 1), 3) as event_ts
+    from raw
 )
+
 select
     message_id,
     if(_vnd IS NULL, 'inbound', 'outbound') as direction,
-    -- inbound: `contacts` is a JSON ARRAY [{ "wa_id": "2547...", "profile": {...} }]
-    --          -> take element 1, then key 'wa_id' (positional array + key on the object).
-    -- outbound: `to` = recipient phone.
-    -- Normalise both to digits-only so formatting differences never break matching.
+    -- inbound: contacts is a JSON array [{"wa_id": "...", ...}] -> element 1, key wa_id
+    -- outbound: `to` = recipient phone. Digits-only so both sides match.
     if(_vnd IS NULL,
        replaceRegexpAll(JSONExtractString(assumeNotNull(contacts), 1, 'wa_id'), '[^0-9]', ''),
-       replaceRegexpAll(`to`, '[^0-9]', '')
+       replaceRegexpAll(toString(`to`), '[^0-9]', '')
     ) as user_key,
     event_ts,
     toDate(event_ts) as day

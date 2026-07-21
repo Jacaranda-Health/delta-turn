@@ -1,0 +1,55 @@
+version: 2
+
+models:
+  - name: daily_kpis
+    description: >
+      Daily DELTA product & engagement KPIs — one row per calendar day across the
+      active data range (gap-free via dim_date). Aggregation layer feeding the
+      delta_kpis_daily mart.
+    columns:
+      - name: day
+        description: Calendar date from the dim_date spine; every day present, no gaps.
+        data_tests: [not_null, unique]
+      - name: enrolled_cumulative
+        description: >
+          Running count of distinct contacts who have initiated any DELTA flow up to
+          and including this day. Monotonic; 0 before the first enrolment.
+      - name: outbound_msgs
+        description: Count of outbound WhatsApp messages sent this day (0 if none).
+      - name: message_success_rate
+        description: >
+          Ratio (0–1) of outbound messages reaching 'delivered' or 'read'
+          (delivered / sent) this day. 0 on days with no outbound messages.
+      - name: failed_msgs
+        description: Outbound messages with a delivery error this day (0 if none).
+      - name: downtime_rate
+        description: >
+          Ratio (0–1) of failed operations to total outbound operations this day
+          (failed / outbound). 0 on days with no outbound messages.
+      - name: median_latency_seconds
+        description: >
+          Median seconds from a user trigger to DELTA's first reply for sessions this
+          day, within max_reply_window_seconds. 0 on days with no replied sessions.
+
+  - name: module_completion
+    description: >
+      Daily module completion funnel per canonical DELTA module. Started = ≥1 response;
+      completed = answered all distinct questions in the module. Feeds
+      module_completion_daily.
+    columns:
+      - name: day
+        description: Calendar date (dim_date spine).
+        data_tests: [not_null]
+      - name: module_name
+        description: Canonical module.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['PPH', 'Communication', 'RMC', 'APH']
+      - name: cumulative_started
+        description: Distinct contacts who had started the module on/before this day.
+      - name: cumulative_completed
+        description: Distinct contacts who had completed the module on/before this day.
+      - name: completion_rate
+        description: Ratio (0–1) — cumulative_completed / cumulative_started; 0 before the module has any starts.
