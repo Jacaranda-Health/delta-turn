@@ -14,3 +14,15 @@ models:
           - accepted_values:
               arguments:
                 values: ['PPH', 'Communication', 'RMC', 'APH']
+  - name: session_latency
+    description: >
+      Session-grain latency (one row per replied trigger, no user identifiers).
+      Exists so Power BI can compute a true MEDIAN/percentile over any selected
+      period — averaging daily medians is not statistically valid.
+    columns:
+      - name: day
+        description: Date of the inbound trigger.
+        data_tests: [not_null]
+      - name: latency_seconds
+        description: Seconds from user trigger to DELTA's first reply, bounded by max_reply_window_seconds.
+        data_tests: [not_null]
