@@ -4,6 +4,11 @@ models:
   - name: int_message_events
     description: One row per message with normalized direction and user key.
     columns:
+      - name: id
+        description: Surrogate key (dbt_utils.generate_surrogate_key over the grain).
+        data_tests:
+          - not_null
+          - unique
       - name: direction
         data_tests:
           - accepted_values:
@@ -20,6 +25,11 @@ models:
   - name: int_module_responses
     description: Flow responses classified into the 4 canonical DELTA modules.
     columns:
+      - name: id
+        description: Surrogate key of (package_id, response_row_id) — same grain as int_flow_responses.
+        data_tests:
+          - not_null
+          - unique
       - name: module_name
         data_tests:
           - not_null
@@ -28,7 +38,39 @@ models:
                 values: ['PPH', 'Communication', 'RMC', 'APH']
   - name: int_flow_responses
     description: Unnested Flow Results — one row per answered question.
+    columns:
+      - name: id
+        description: Surrogate key (dbt_utils.generate_surrogate_key over the grain).
+        data_tests:
+          - not_null
+          - unique
   - name: int_message_status
     description: Furthest delivery status per message id.
+    columns:
+      - name: id
+        description: Surrogate key (dbt_utils.generate_surrogate_key over the grain).
+        data_tests:
+          - not_null
+          - unique
   - name: int_delta_sessions
-    description: Response latency per user trigger via ASOF join.
+    description: >
+      Response latency per inbound user trigger via ASOF join to the first outbound
+      reply at/after the trigger. Grain: one row per inbound message_id.
+    columns:
+      - name: id
+        description: Surrogate key of inbound message_id (unique per trigger).
+        data_tests:
+          - not_null
+          - unique
+  - name: int_lesson_completion
+    description: >
+      Lesson completion status per contact and module by day.
+    columns:
+      - name: id
+        description: Surrogate key (dbt_utils.generate_surrogate_key over the grain).
+        data_tests:
+          - not_null
+          - unique
+      - name: contact_id
+        data_tests: [not_null]
+      - name: module_name

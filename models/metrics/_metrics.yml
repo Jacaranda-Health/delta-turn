@@ -7,6 +7,11 @@ models:
       active data range (gap-free via dim_date). Aggregation layer feeding the
       delta_kpis_daily mart.
     columns:
+      - name: id
+        description: Surrogate key (dbt_utils.generate_surrogate_key over the grain).
+        data_tests:
+          - not_null
+          - unique
       - name: day
         description: Calendar date from the dim_date spine; every day present, no gaps.
         data_tests: [not_null, unique]
@@ -19,24 +24,31 @@ models:
       - name: message_success_rate
         description: >
           Ratio (0–1) of outbound messages reaching 'delivered' or 'read'
-          (delivered / sent) this day. 0 on days with no outbound messages.
+          (delivered / sent) this day. NULL on days with no outbound messages.
       - name: failed_msgs
         description: Outbound messages with a delivery error this day (0 if none).
       - name: downtime_rate
         description: >
           Ratio (0–1) of failed operations to total outbound operations this day
-          (failed / outbound). 0 on days with no outbound messages.
+          (failed / outbound). NULL on days with no outbound messages.
       - name: median_latency_seconds
         description: >
           Median seconds from a user trigger to DELTA's first reply for sessions this
-          day, within max_reply_window_seconds. 0 on days with no replied sessions.
+          day, within max_reply_window_seconds. NULL on days with no replied sessions
+          (deliberately not 0 — a zero would be a false reading and skews averages).
 
   - name: module_completion
     description: >
-      Daily module completion funnel per canonical DELTA module. Started = ≥1 response;
-      completed = answered all distinct questions in the module. Feeds
-      module_completion_daily.
+      Daily module completion per canonical module. A contact has completed a module
+      when they have completed ALL of the module's active lessons (mini-modules).
+      Lesson completion = answering all of that lesson's questions. Rolls up from
+      mini_module_completion.
     columns:
+      - name: id
+        description: Surrogate key (dbt_utils.generate_surrogate_key over the grain).
+        data_tests:
+          - not_null
+          - unique
       - name: day
         description: Calendar date (dim_date spine).
         data_tests: [not_null]
@@ -44,12 +56,61 @@ models:
         description: Canonical module.
         data_tests:
           - not_null
-          - accepted_values:
-              arguments:
-                values: ['PPH', 'Communication', 'RMC', 'APH']
       - name: cumulative_started
         description: Distinct contacts who had started the module on/before this day.
       - name: cumulative_completed
         description: Distinct contacts who had completed the module on/before this day.
       - name: completion_rate
         description: Ratio (0–1) — cumulative_completed / cumulative_started; 0 before the module has any starts.
+
+  - name: mini_module_completion
+    description: >
+      Daily lesson (mini-module) completion. Completion = a contact answered all of
+      that lesson's questions. Canonical lesson names come from the mini_module_map seed.
+    columns:
+      - name: id
+        description: Surrogate key (dbt_utils.generate_surrogate_key over the grain).
+        data_tests:
+          - not_null
+          - unique
+      - name: day
+        data_tests: [not_null]
+      - name: module_name
+        data_tests: [not_null]
+      - name: mini_module
+        description: Canonical lesson name (from mini_module_map).
+        data_tests: [not_null]
+      - name: completion_rate
+        description: Ratio (0–1) — completed / started for the lesson.
+      - name: completion_rate
+        description: Ratio (0–1) of contacts who completed ALL active lessons (fully completed the module).
+      - name: module_progress
+        description: >
+          Average fraction (0–1) of the module's active lessons a started contact has
+          completed. Continuous progress measure; complements the strict completion_rate.
+  - name: module_progression
+    description: >
+      Distribution of contacts by number of lessons completed within a module.
+    columns:
+      - name: id
+        description: Surrogate key (dbt_utils.generate_surrogate_key over the grain).
+        data_tests:
+          - not_null
+          - unique
+      - name: module_name
+        data_tests: [not_null]
+      - name: lessons_completed
+        data_tests: [not_null]
+  - name: contact_module_progress
+    description: >
+      Per-contact progress within each module (lessons started vs completed).
+    columns:
+      - name: id
+        description: Surrogate key of (module_name, contact_id).
+        data_tests:
+          - not_null
+          - unique
+      - name: contact_id
+        data_tests: [not_null]
+      - name: module_name
+      

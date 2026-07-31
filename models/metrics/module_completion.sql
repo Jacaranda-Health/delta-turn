@@ -1,45 +1,35 @@
-{{ config(materialized='table', engine='MergeTree()', order_by='(module_name, day)',
-          settings={'allow_nullable_key': 1}) }}
+-- ============================================================
+-- module_completion  (metric)
+-- Purpose : Daily module completion + progress per canonical module.
+-- Grain   : One row per module per day.
+-- Source  : int_lesson_completion, dim_date.
+-- Logic   : completion_rate  = contacts who completed ALL of a module's active
+--                              lessons ÷ started (strict, all-or-nothing).
+--           module_progress  = avg fraction of a module's lessons a started
+--                              contact has completed (continuous momentum measure).
+-- Notes   : total_lessons counts active (has-data) lessons, so undeployed lessons
+--           don't make completion impossible-by-construction.
+-- ============================================================
 
-with module_qcount as (
-    select module_name, uniqExact(question_key) as total_questions
-    from {{ ref('int_module_responses') }}
-    group by module_name
-),
-contact_module as (
-    select module_name, contact_id,
-        min(toDate(response_ts)) as start_date,
-        max(toDate(response_ts)) as last_date,
-        uniqExact(question_key)  as answered_questions
-    from {{ ref('int_module_responses') }}
-    group by module_name, contact_id
-),
-flagged as (
-    select cm.module_name, cm.contact_id, cm.start_date,
-        cm.answered_questions >= mq.total_questions as completed,
-        if(cm.answered_questions >= mq.total_questions, cm.last_date, null) as complete_date
-    from contact_module cm
-    inner join module_qcount mq on cm.module_name = mq.module_name
-),
-bounds as (select min(start_date) as start_day, max(start_date) as end_day from flagged),
-spine as (
-    select d.date_day as day
-    from {{ ref('dim_date') }} d
-    cross join bounds b
-    where d.date_day between b.start_day and b.end_day
-),
-modules as (select distinct module_name from {{ ref('int_module_responses') }})
+with lc as (select * from {{ ref('int_lesson_completion') }}),
+module_lessons as (select module_name, uniqExact(mini_module) as total_lessons from lc group by module_name),
+bounds as (select min(start_date) as s, max(start_date) as e from lc),
+spine  as (select date_day as day from {{ ref('dim_date') }} cross join bounds where date_day between s and e),
+contact_day as (
+    select sp.day, lc.module_name, lc.contact_id,
+           uniqExactIf(lc.mini_module, lc.completed = 1 and lc.complete_date <= sp.day) as lessons_done
+    from spine sp inner join lc on lc.start_date <= sp.day
+    group by sp.day, lc.module_name, lc.contact_id
+)
 select
-    sp.day        as day,
-    m.module_name as module_name,
-    countIf(f.start_date <= sp.day)                             as cumulative_started,
-    countIf(f.completed and f.complete_date <= sp.day)          as cumulative_completed,
-    coalesce(
-        round(countIf(f.completed and f.complete_date <= sp.day)
-              / nullIf(countIf(f.start_date <= sp.day), 0), 3),
-        0)                                                       as completion_rate
-from spine sp
-cross join modules m
-left join flagged f on f.module_name = m.module_name
-group by sp.day, m.module_name
-order by m.module_name, sp.day
+    {{ dbt_utils.generate_surrogate_key(['module_name', 'day']) }} as id,
+    cd.day, cd.module_name,
+    count()                                              as cumulative_started,
+    countIf(cd.lessons_done >= ml.total_lessons)         as cumulative_completed,
+    coalesce(round(countIf(cd.lessons_done >= ml.total_lessons)/nullIf(count(),0),3),0) as completion_rate,
+    round(avg(cd.lessons_done / ml.total_lessons), 3)    as module_progress,
+    round(avg(cd.lessons_done), 2)                       as avg_lessons_completed,
+    max(ml.total_lessons)                                as total_lessons
+from contact_day cd inner join module_lessons ml on cd.module_name = ml.module_name
+group by cd.day, cd.module_name
+order by cd.module_name, cd.day

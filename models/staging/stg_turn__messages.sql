@@ -1,4 +1,4 @@
-{{ config(engine='ReplacingMergeTree()', order_by='id', settings={'allow_nullable_key': 1}) }}
+{{ config(order_by='id') }}
 select
     id, `to`, `from`, _vnd, text, type, contacts, recipient, timestamp, interactive, recipient_type, _airbyte_extracted_at
 from {{ source('turn', 'messages') }}

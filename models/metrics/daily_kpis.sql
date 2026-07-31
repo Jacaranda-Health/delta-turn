@@ -1,5 +1,15 @@
-{{ config(materialized='table', engine='MergeTree()', order_by='day',
-          settings={'allow_nullable_key': 1}) }}
+-- ============================================================
+-- daily_kpis  (metric)
+-- Purpose : Daily product & engagement KPIs — enrolled users, message success,
+--           downtime, response latency.
+-- Grain   : One row per calendar day (gap-free via dim_date spine).
+-- Source  : int_flow_responses, int_message_events, int_message_status,
+--           int_delta_sessions, dim_date.
+-- Notes   : Counts are 0-filled on quiet days; rates & latency are NULL (not 0),
+--           since a rate/median of no activity is undefined. Rates are 0–1 ratios.
+-- ============================================================
+
+{{ config(order_by='day') }}
 
 with enroll as (
     select contact_id, min(toDate(response_ts)) as enroll_day
@@ -46,13 +56,16 @@ enroll_cum as (
     group by sp.day
 )
 select
+    {{ dbt_utils.generate_surrogate_key(['day']) }} as id,
     sp.day                                                              as day,
     coalesce(ec.enrolled_cumulative, 0)                                 as enrolled_cumulative,
     coalesce(md.outbound_msgs, 0)                                       as outbound_msgs,
-    coalesce(round(md.delivered_msgs / nullIf(md.sent_msgs, 0), 3), 0)  as message_success_rate,
+    cast(round(md.delivered_msgs / nullIf(md.sent_msgs, 0), 3) as Nullable(Float32))  as message_success_rate,
     coalesce(md.failed_msgs, 0)                                         as failed_msgs,
-    coalesce(round(md.failed_msgs / nullIf(md.outbound_msgs, 0), 3), 0) as downtime_rate,
-    ld.median_latency_seconds                            as median_latency_seconds
+    cast(round(md.failed_msgs / nullIf(md.outbound_msgs, 0), 3) as Nullable(Float32)) as downtime_rate,
+    cast(ld.median_latency_seconds as Nullable(Float32))               as median_latency_seconds,
+    coalesce(md.delivered_msgs, 0)  as delivered_msgs,
+    coalesce(md.sent_msgs, 0)       as sent_msgs
 from spine sp
 left join enroll_cum ec on sp.day = ec.day
 left join msg_daily  md on sp.day = md.day

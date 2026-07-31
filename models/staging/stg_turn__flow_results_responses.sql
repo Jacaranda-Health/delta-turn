@@ -1,4 +1,4 @@
-{{ config(engine='ReplacingMergeTree()', order_by='page_id', settings={'allow_nullable_key': 1}) }}
+{{ config(order_by='page_id') }}
 select
     page_id, data, links, _airbyte_extracted_at
 from {{ source('turn', 'flow_results_responses') }}

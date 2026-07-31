@@ -6,14 +6,44 @@ models:
     columns:
       - name: day
         data_tests: [not_null, unique]
+      - name: id
+        description: Surrogate key (dbt_utils.generate_surrogate_key over the grain).
+        data_tests:
+          - not_null
+          - unique
   - name: module_completion_daily
-    description: Daily module completion funnel per canonical module.
+    description: >
+      Daily module completion per canonical module. A contact completes a module
+      when they complete ALL of the module's active lessons (roll-up of
+      mini_module_completion).
     columns:
       - name: module_name
+        data_tests: [not_null]
+      - name: day
+        data_tests: [not_null]
+      - name: id
+        description: Surrogate key (dbt_utils.generate_surrogate_key over the grain).
         data_tests:
-          - accepted_values:
-              arguments:
-                values: ['PPH', 'Communication', 'RMC', 'APH']
+          - not_null
+          - unique
+
+  - name: mini_module_completion_daily
+    description: >
+      Daily lesson (mini-module) completion per canonical lesson. Lesson completion =
+      answered all of that lesson's questions. Canonical names from mini_module_map.
+    columns:
+      - name: module_name
+        data_tests: [not_null]
+      - name: mini_module
+        data_tests: [not_null]
+      - name: day
+        data_tests: [not_null]
+      - name: id
+        description: Surrogate key (dbt_utils.generate_surrogate_key over the grain).
+        data_tests:
+          - not_null
+          - unique
+
   - name: session_latency
     description: >
       Session-grain latency (one row per replied trigger, no user identifiers).
@@ -26,3 +56,21 @@ models:
       - name: latency_seconds
         description: Seconds from user trigger to DELTA's first reply, bounded by max_reply_window_seconds.
         data_tests: [not_null]
+      - name: id
+        description: Surrogate key of (day, latency_seconds).
+        data_tests:
+          - not_null
+          - unique
+  - name: module_progression_daily
+    description: >
+      Distribution of contacts by number of lessons completed within a module.
+    columns:
+      - name: module_name
+        data_tests: [not_null]
+      - name: lessons_completed
+        data_tests: [not_null]
+      - name: id
+        description: Surrogate key of (module_name, lessons_completed).
+        data_tests:
+          - not_null
+          - unique
