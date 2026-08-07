@@ -1,0 +1,9 @@
+version: 2
+seeds:
+  - name: mini_module_map
+    description: >
+      Canonical lesson (mini-module) list per module, provided by the curriculum team.
+      Maps raw flow titles to canonical lesson names. PPH + APH complete; COMMS/RMC WIP.
+    columns:
+      - name: mini_module
+        data_tests: [not_null, unique]

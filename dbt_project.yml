@@ -31,17 +31,18 @@ clean-targets:         # directories to be removed by `dbt clean`
 # files using the `{{ config(...) }}` macro.
 vars:
   max_reply_window_seconds: 3600
-
 models:
   delta_turn:
     +materialized: table
+    +settings:
+      allow_nullable_key: 1          # was repeated in ~every model
     staging:
-      +materialized: table
+      +engine: 'ReplacingMergeTree()'
     intermediate:
-      +materialized: table
-    marts:
-      +materialized: table
-    utilities:
-      +materialized: table
+      +engine: 'MergeTree()'
     metrics:
-      +materialized: table
+      +engine: 'MergeTree()'
+    marts:
+      +engine: 'MergeTree()'
+    utilities:
+      +engine: 'MergeTree()'

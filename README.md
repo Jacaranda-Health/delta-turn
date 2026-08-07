@@ -17,7 +17,7 @@ All metric logic lives in dbt; Power BI reads final values only.
 | **Message success rate** | Outbound messages reaching `delivered`/`read` ÷ sent | `delta_kpis_daily.message_success_rate` |
 | **Response latency** | Seconds from a user trigger to DELTA's first reply | `session_latency` (per session) + `delta_kpis_daily.median_latency_seconds` (per day) |
 | **Downtime rate** | Failed operations ÷ total operations | `delta_kpis_daily.downtime_rate` |
-| **Module completion rate** | Contacts who answered all questions in a module ÷ started, per module | `module_completion_daily` |
+| **Module completion rate** | Contacts who completed *all* lessons in a module ÷ started, per module | `module_completion_daily` |
 
 **Modules** roll up to four canonical tracks: **PPH, Communication, RMC, APH.**
 (Climate & Health was retired.) Classification is by flow *title* pattern — note APH

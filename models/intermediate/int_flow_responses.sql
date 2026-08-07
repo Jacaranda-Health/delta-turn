@@ -1,5 +1,4 @@
-{{ config(materialized='table', engine='MergeTree()',
-          order_by='(package_id, response_ts)', settings={'allow_nullable_key': 1}) }}
+{{ config(order_by='(package_id, response_ts)') }}
 
 with raw as (
     select toString(assumeNotNull(data)) as data_str   -- non-null String (avoids Array-in-Nullable)
@@ -21,6 +20,7 @@ exploded as (
 )
 
 select
+    {{ dbt_utils.generate_surrogate_key(['package_id', 'response_row_id']) }} as id,
     package_id,
     -- Turn Flow-Results response tuple (positional per the data-package spec):
     --   [1]=timestamp  [2]=row_id  [3]=contact_id  [4]=session_id

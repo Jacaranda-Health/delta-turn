@@ -1,8 +1,7 @@
-{{ config(materialized='table', engine='MergeTree()',
-          order_by='day', settings={'allow_nullable_key': 1}) }}
+{{ config(order_by='day') }}
 
 with inbound as (
-    select user_key, event_ts as in_ts
+    select message_id, user_key, event_ts as in_ts
     from {{ ref('int_message_events') }}
     where direction = 'inbound' and user_key != '' and event_ts is not null
 ),
@@ -12,6 +11,7 @@ outbound as (
     where direction = 'outbound' and user_key != '' and event_ts is not null
 )
 select
+    {{ dbt_utils.generate_surrogate_key(['message_id']) }} as id,
     toDate(i.in_ts) as day,
     i.user_key,
     i.in_ts,

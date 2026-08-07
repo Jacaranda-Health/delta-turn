@@ -1,5 +1,4 @@
-{{ config(materialized='table', engine='MergeTree()',
-          order_by='(user_key, event_ts)', settings={'allow_nullable_key': 1}) }}
+{{ config(order_by='(user_key, event_ts)') }}
 
 with raw as (
     select
@@ -24,6 +23,7 @@ parsed as (
 )
 
 select
+    {{ dbt_utils.generate_surrogate_key(['message_id']) }} as id,
     message_id,
     if(_vnd IS NULL, 'inbound', 'outbound') as direction,
     -- inbound: contacts is a JSON array [{"wa_id": "...", ...}] -> element 1, key wa_id
