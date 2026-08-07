@@ -31,6 +31,9 @@ clean-targets:         # directories to be removed by `dbt clean`
 # files using the `{{ config(...) }}` macro.
 vars:
   max_reply_window_seconds: 3600
+  # Exclusion switch: OFF during test phase so the dashboard stays populated.
+  # Flip to true at go-live (Aug 11 2026) to drop test/blocked/seed contacts.
+  apply_contact_exclusions: false
 models:
   delta_turn:
     +materialized: table

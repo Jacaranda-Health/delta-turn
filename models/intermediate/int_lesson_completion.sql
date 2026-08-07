@@ -12,7 +12,11 @@
 {{ config(order_by='(module_name, mini_module)') }}
 
 with src as (
-    select * from {{ ref('int_module_responses') }} where mini_module is not null
+    select *
+    from {{ ref('int_module_responses') }}
+    where mini_module is not null
+      and contact_id is not null
+      and contact_id != ''
 ),
 pkg_questions as (                       -- questions per raw flow (package)
     select package_id, uniqExact(question_key) as total_q
