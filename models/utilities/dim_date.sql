@@ -31,6 +31,8 @@ select
     concat(toString(toYear(date_day)), '-W',
            leftPad(toString(toISOWeek(date_day)), 2, '0'))                             as year_week,
     toYear(date_day) * 100 + toISOWeek(date_day)                                       as year_week_sort,
+    toMonday(date_day)                                                                 as week_start,
+    toMonday(date_day) + 6                                                             as week_end,
     (toYear(date_day) = toYear(today())
         and toQuarter(date_day) = toQuarter(today()))                                  as is_current_quarter,
     (toYear(date_day) = toYear(today())
