@@ -39,10 +39,10 @@ models:
 
   - name: module_completion
     description: >
-      Daily module completion per canonical module. A contact has completed a module
-      when they have completed ALL of the module's active lessons (mini-modules).
-      Lesson completion = answering all of that lesson's questions. Rolls up from
-      mini_module_completion.
+      Daily module completion + progress per canonical module. "Module completed" is
+      reported two ways: posttest_completion_rate (HEADLINE — the contact finished the
+      module's post-test, i.e. the terminal assessment / "finished the course") and
+      completion_rate (STRICT — completed every active lesson).
     columns:
       - name: id
         description: Surrogate key (dbt_utils.generate_surrogate_key over the grain).
@@ -58,10 +58,24 @@ models:
           - not_null
       - name: cumulative_started
         description: Distinct contacts who had started the module on/before this day.
+      - name: posttest_completed
+        description: Distinct contacts who had completed the module's post-test on/before this day (headline completion).
+      - name: posttest_completion_rate
+        description: >
+          Ratio (0–1) — posttest_completed / cumulative_started. Headline "module
+          completion" shown to stakeholders (finishing the post-test = finishing the module).
       - name: cumulative_completed
-        description: Distinct contacts who had completed the module on/before this day.
+        description: Distinct contacts who had completed ALL active lessons on/before this day (strict definition).
       - name: completion_rate
-        description: Ratio (0–1) — cumulative_completed / cumulative_started; 0 before the module has any starts.
+        description: Ratio (0–1) — cumulative_completed / cumulative_started; strict all-lessons completion.
+      - name: module_progress
+        description: >
+          Average fraction (0–1) of the module's active lessons a started contact has
+          completed. Continuous momentum measure.
+      - name: avg_lessons_completed
+        description: Average number of the module's active lessons a started contact has completed.
+      - name: total_lessons
+        description: Count of the module's active (has-data) lessons.
 
   - name: mini_module_completion
     description: >
@@ -80,14 +94,12 @@ models:
       - name: mini_module
         description: Canonical lesson name (from mini_module_map).
         data_tests: [not_null]
+      - name: lesson_label
+        description: Lesson name without the module prefix.
+      - name: lesson_order
+        description: Sequence of the lesson within its module (from mini_module_map).
       - name: completion_rate
         description: Ratio (0–1) — completed / started for the lesson.
-      - name: completion_rate
-        description: Ratio (0–1) of contacts who completed ALL active lessons (fully completed the module).
-      - name: module_progress
-        description: >
-          Average fraction (0–1) of the module's active lessons a started contact has
-          completed. Continuous progress measure; complements the strict completion_rate.
   - name: module_progression
     description: >
       Distribution of contacts by number of lessons completed within a module.
