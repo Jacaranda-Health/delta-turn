@@ -26,9 +26,17 @@ prof as (
         JSONExtractString(d, 'whatsapp_id')           as phone,          -- PII
         JSONExtractString(d, 'whatsapp_profile_name') as profile_name,   -- PII
         JSONExtractString(d, 'name')                  as given_name,     -- PII
-        upper(JSONExtractString(d, 'cadre'))          as cadre,
-        upper(JSONExtractString(d, 'county'))         as county,
-        JSONExtractString(d, 'facility')              as facility_raw,
+        -- primary cadre, trimmed; fall back to cadre_1 when blank; underscores/
+        -- hyphens -> spaces so labels read cleanly (CLINICAL_OFFICER -> CLINICAL OFFICER)
+        replaceRegexpAll(
+            coalesce(
+                nullIf(upper(trimBoth(JSONExtractString(d, 'cadre'))),   ''),
+                nullIf(upper(trimBoth(JSONExtractString(d, 'cadre_1'))), '')
+            ),
+            '[_-]+', ' '
+        )                                             as cadre,
+        upper(trimBoth(JSONExtractString(d, 'county')))         as county,
+        trimBoth(JSONExtractString(d, 'facility'))              as facility_raw,
         JSONExtractString(d, 'learning_path')         as learning_path,
         JSONExtractString(d, 'completion_status')     as turn_completion_status,
         parseDateTime64BestEffortOrNull(JSONExtractString(d, 'enrollment_date')) as enrollment_at,
@@ -55,6 +63,6 @@ select
     -- apply_contact_exclusions var downstream). Reliable signal only:
     -- known test cadre OR manual seed. is_blocked/opted_in kept as columns
     -- above for later review before adding them to the rule.
-    (p.cadre = 'SYSTEM_TESTER' or ex.contact_id is not null) as is_excluded
+    (p.cadre = 'SYSTEM TESTER' or ex.contact_id is not null) as is_excluded
 from prof p
 left join {{ ref('excluded_contacts') }} ex on p.contact_id = toString(ex.contact_id)

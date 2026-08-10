@@ -8,10 +8,12 @@
 -- ============================================================
 
 select
-    id,
-    contact_id,
-    module_name,
-    mini_module,
-    replaceRegexpOne(mini_module, '^[a-z]+_', '') as lesson_label,
-    completed
-from {{ ref('int_lesson_completion') }}
+    lc.id,
+    lc.contact_id,
+    lc.module_name,
+    lc.mini_module,
+    coalesce(mmap.lesson_title, replaceRegexpOne(lc.mini_module, '^[a-z]+_', '')) as lesson_label,
+    lc.completed
+from {{ ref('int_lesson_completion') }} lc
+left join {{ ref('mini_module_map') }} mmap
+    on lc.module_name = mmap.module_name and lc.mini_module = mmap.mini_module

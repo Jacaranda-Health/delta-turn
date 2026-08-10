@@ -56,6 +56,15 @@ select
         module_name = 'Communication' and (title ILIKE '%core%' or title ILIKE '%communication skill%'),        'comms_core_communication_skills',
         module_name = 'Communication' and (title ILIKE '%definition%' or title ILIKE '%comms_2%'),              'comms_definitions',
         module_name = 'Communication' and (title ILIKE '%intro%' or title ILIKE '%welcome%' or title ILIKE '%pretest%'), 'comms_welcome_pretest',             
+        -- APH -----------------------------------------------------------
+        module_name = 'APH' and (title ILIKE '%post_test%' or title ILIKE '%post-test%' or title ILIKE '%post test%' or title ILIKE '%quiz%'), 'aph_post_test',
+        module_name = 'APH' and title ILIKE '%referral%',                                     'aph_referral_and_transfer',
+        module_name = 'APH' and title ILIKE '%abruption%',                                    'aph_placental_abruption',
+        module_name = 'APH' and title ILIKE '%praevia%',                                      'aph_placental_praevia',
+        module_name = 'APH' and (title ILIKE '%emergency%' or title ILIKE '%resuscitation%'), 'aph_emergency_response_initial_resuscitation',
+        module_name = 'APH' and (title ILIKE '%diagnosis%' or title ILIKE '%assessment%'),    'aph_diagnosis_assessment',
+        module_name = 'APH' and title ILIKE '%definition%',                                   'aph_definitions',
+        module_name = 'APH' and (title ILIKE '%intro%' or title ILIKE '%welcome%' or title ILIKE '%pretest%'), 'aph_welcome_pretest',
         NULL
     ) as mini_module,
     module_name,
