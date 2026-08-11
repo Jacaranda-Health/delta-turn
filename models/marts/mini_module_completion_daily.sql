@@ -6,6 +6,6 @@
 -- ============================================================
 select 
     id,
-    day, module_name, mini_module, lesson_label,lesson_order,
+    day, module_name, mini_module, lesson_label, lesson_order, lesson_sort,
     cumulative_started, cumulative_completed, completion_rate
 from {{ ref('mini_module_completion') }}

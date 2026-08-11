@@ -13,6 +13,8 @@ select
     lc.module_name,
     lc.mini_module,
     coalesce(mmap.lesson_title, replaceRegexpOne(lc.mini_module, '^[a-z]+_', '')) as lesson_label,
+    (multiIf(lc.module_name = 'PPH', 1, lc.module_name = 'APH', 2, lc.module_name = 'RMC', 3, lc.module_name = 'Communication', 4, 9) * 100
+        + coalesce(mmap.lesson_order, 999))          as lesson_sort,
     lc.completed
 from {{ ref('int_lesson_completion') }} lc
 left join {{ ref('mini_module_map') }} mmap

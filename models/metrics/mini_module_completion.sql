@@ -20,6 +20,8 @@ select
     mm.mini_module as mini_module,
     coalesce(mmap.lesson_title, replaceRegexpOne(mm.mini_module, '^[a-z]+_', '')) as lesson_label,
     coalesce(mmap.lesson_order, 999)                 as lesson_order,
+    (multiIf(mm.module_name = 'PPH', 1, mm.module_name = 'APH', 2, mm.module_name = 'RMC', 3, mm.module_name = 'Communication', 4, 9) * 100
+        + coalesce(mmap.lesson_order, 999))          as lesson_sort,
     countIf(lc.start_date <= sp.day)                          as cumulative_started,
     countIf(lc.completed = 1 and lc.complete_date <= sp.day)  as cumulative_completed,
     coalesce(round(countIf(lc.completed = 1 and lc.complete_date <= sp.day)
