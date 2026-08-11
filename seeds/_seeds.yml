@@ -17,3 +17,11 @@ seeds:
     columns:
       - name: contact_id
         data_tests: [not_null]
+  - name: cadre_map
+    description: >
+      Canonical cadre labels. Maps the normalized (upper, de-underscored) raw cadre
+      to its display label. Product team edits this to add/rename cadres; anything
+      not listed falls back to "Other Cadre not listed" in int_contact_profile.
+    columns:
+      - name: cadre_raw
+        data_tests: [not_null, unique]
