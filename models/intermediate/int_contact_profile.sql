@@ -61,7 +61,7 @@ select
     -- canonical cadre from the cadre_map seed; non-blank unmapped -> Other; blank stays blank
     multiIf(
         p.cadre_norm is null, cast(null as Nullable(String)),
-        cm.cadre is not null, cm.cadre,
+        cm.cadre != '', cm.cadre,
         'Other Cadre not listed'
     )                                            as cadre,
     p.county,
@@ -75,7 +75,8 @@ select
     -- apply_contact_exclusions var downstream). Reliable signal only:
     -- known test cadre OR manual seed. is_blocked/opted_in kept as columns
     -- above for later review before adding them to the rule.
-    (p.is_tester or ex.contact_id is not null) as is_excluded
+    (p.is_tester
+     or p.contact_id in (select toString(contact_id) from {{ ref('excluded_contacts') }})
+    ) as is_excluded
 from prof p
-left join {{ ref('excluded_contacts') }} ex on p.contact_id = toString(ex.contact_id)
 left join {{ ref('cadre_map') }} cm        on p.cadre_norm = cm.cadre_raw
