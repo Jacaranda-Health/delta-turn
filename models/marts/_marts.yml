@@ -13,9 +13,9 @@ models:
           - unique
   - name: module_completion_daily
     description: >
-      Daily module completion per canonical module. A contact completes a module
-      when they complete ALL of the module's active lessons (roll-up of
-      mini_module_completion).
+      Daily module completion per canonical module. Reports posttest_completion_rate
+      (headline — finished the module's post-test) and completion_rate (strict — all
+      active lessons). Roll-up of module_completion.
     columns:
       - name: module_name
         data_tests: [not_null]
@@ -74,3 +74,61 @@ models:
         data_tests:
           - not_null
           - unique
+  - name: learner_module_progress
+    description: >
+      BI-ready per-learner module progress (lessons started vs completed). Relate to
+      dim_learner (contact_id) and dim_module (module_name) for cadre / facility /
+      county slicing. Grain: one row per (module, contact).
+    columns:
+      - name: id
+        description: Surrogate key (dbt_utils.generate_surrogate_key over the grain).
+        data_tests:
+          - not_null
+          - unique
+      - name: contact_id
+        data_tests: [not_null]
+      - name: module_name
+        data_tests: [not_null]
+  - name: fct_enrollment
+    description: >
+      Contact-grain enrolment fact (one row per learner, first-activity day). Relate
+      contact_id -> dim_learner and enroll_day -> dim_date so Total Users can be
+      filtered by cadre / county / facility.
+    columns:
+      - name: id
+        description: Surrogate key over contact_id.
+        data_tests:
+          - not_null
+          - unique
+      - name: contact_id
+        data_tests: [not_null, unique]
+      - name: enroll_day
+        data_tests: [not_null]
+  - name: fct_message_daily
+    description: >
+      Per-learner daily message counts (outbound/inbound). Contact-grain so cadre /
+      facility / county slicers via dim_learner can filter message volume. Relate
+      contact_id -> dim_learner, day -> dim_date. contact_id null = unattributed.
+    columns:
+      - name: id
+        description: Surrogate key over (contact_id, day).
+        data_tests:
+          - not_null
+          - unique
+      - name: day
+        data_tests: [not_null]
+  - name: learner_lesson_completion
+    description: >
+      Per-learner lesson completion (one row per module/lesson/contact). Contact-grain
+      so the Lesson Completion table can be sliced by cadre / facility / county via
+      dim_learner. Relate contact_id -> dim_learner, module_name -> dim_module.
+    columns:
+      - name: id
+        description: Surrogate key over (module, lesson, contact).
+        data_tests:
+          - not_null
+          - unique
+      - name: contact_id
+        data_tests: [not_null]
+      - name: module_name
+        data_tests: [not_null]

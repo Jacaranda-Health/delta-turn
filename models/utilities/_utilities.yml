@@ -1,0 +1,21 @@
+version: 2
+
+models:
+  - name: dim_learner
+    description: >
+      BI-safe learner dimension (NO PII). Relates to the facts on contact_id for
+      facility / county / cadre slicers and test-account exclusion. Derived from
+      int_contact_profile with identifiers stripped.
+    columns:
+      - name: learner_key
+        description: Surrogate key (dbt_utils.generate_surrogate_key over contact_id).
+        data_tests:
+          - not_null
+          - unique
+      - name: contact_id
+        description: Turn numeric contact id; join key to the facts.
+        data_tests:
+          - not_null
+          - unique
+      - name: is_excluded
+        description: True if the learner should be filtered out (test / blocked / opted-out / seed).

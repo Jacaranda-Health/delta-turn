@@ -74,3 +74,16 @@ models:
       - name: contact_id
         data_tests: [not_null]
       - name: module_name
+  - name: int_contact_profile
+    description: >
+      RESTRICTED — CONTAINS PII (phone + names). One row per contact with profile
+      attributes unnested from Turn's details JSON. The only model holding direct
+      identifiers; Power BI reads dim_learner instead. Restrict grants on this schema.
+    columns:
+      - name: contact_id
+        description: Turn numeric contact id (matches the flow-response contact_id).
+        data_tests:
+          - not_null
+          - unique
+      - name: is_excluded
+        description: True for test cadre (SYSTEM_TESTER), blocked, opted-out, or seed-listed contacts.

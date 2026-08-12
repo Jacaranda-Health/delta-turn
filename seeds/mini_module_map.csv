@@ -1,33 +1,33 @@
-module_name,mini_module,lesson_order
-PPH,pph_welcome_pretest,1
-PPH,pph_definition_types_of_pph,2
-PPH,pph_4Ts,3
-PPH,pph_amstl,4
-PPH,pph_measuring_blood_loss,5
-PPH,pph_emotive_bundle,6
-PPH,pph_essential_skills,7
-PPH,pph_monitoring_and_documentation,8
-PPH,pph_referral_and_transfer,9
-PPH,pph_post_test,10
-APH,aph_welcome_pretest,1
-APH,aph_definitions,2
-APH,aph_diagnosis_assessment,3
-APH,aph_emergency_response_initial_resuscitation,4
-APH,aph_placental_praevia,5
-APH,aph_placental_abruption,6
-APH,aph_referral_and_transfer,7
-APH,aph_post_test,8
-RMC,rmc_welcome_pretest,1
-RMC,rmc_definition,2
-RMC,rmc_human_rights,3
-RMC,rmc_barriers_to_quality_maternal_healthcare,4
-RMC,rmc_d&a_types_experience_by_postpartumwomen,5
-RMC,rmc_person_centred_maternity_care,6
-RMC,rmc_post_test,7
-Communication,comms_welcome_pretest,1
-Communication,comms_definitions,2
-Communication,comms_core_communication_skills,3
-Communication,comms_cultural_awareness,4
-Communication,comms_trauma-Informed_communication_and_de-escalation,5
-Communication,comms_communication_in_emergencies,6
-Communication,comms_post_test,7
+module_name,mini_module,lesson_order,lesson_title
+PPH,pph_welcome_pretest,1,Welcome Pretest
+PPH,pph_definition_types_of_pph,2,Definition Types of PPH
+PPH,pph_4Ts,3,4Ts
+PPH,pph_amstl,4,AMSTL
+PPH,pph_measuring_blood_loss,5,Measuring Blood Loss
+PPH,pph_emotive_bundle,6,Emotive Bundle
+PPH,pph_essential_skills,7,Essential Skills
+PPH,pph_monitoring_and_documentation,8,Monitoring and Documentation
+PPH,pph_referral_and_transfer,9,Referral and Transfer
+PPH,pph_post_test,10,Post Test
+APH,aph_welcome_pretest,1,Welcome Pretest
+APH,aph_definitions,2,Definitions
+APH,aph_diagnosis_assessment,3,Diagnosis and Assessment
+APH,aph_emergency_response_initial_resuscitation,4,Emergency Response and Initial Resuscitation
+APH,aph_placental_praevia,5,Placental Praevia
+APH,aph_placental_abruption,6,Placental Abruption
+APH,aph_referral_and_transfer,7,Referral and Transfer
+APH,aph_post_test,8,Post Test
+RMC,rmc_welcome_pretest,1,Welcome Pretest
+RMC,rmc_definition,2,Definition
+RMC,rmc_human_rights,3,Human Rights
+RMC,rmc_barriers_to_quality_maternal_healthcare,4,Barriers to Quality Maternal Healthcare
+RMC,rmc_d&a_types_experience_by_postpartumwomen,5,D&A Types Experienced by Postpartum Women
+RMC,rmc_person_centred_maternity_care,6,Person-Centred Maternity Care
+RMC,rmc_post_test,7,Post Test
+Communication,comms_welcome_pretest,1,Welcome Pretest
+Communication,comms_definitions,2,Definitions
+Communication,comms_core_communication_skills,3,Core Communication Skills
+Communication,comms_cultural_awareness,4,Cultural Awareness
+Communication,comms_trauma-Informed_communication_and_de-escalation,5,Trauma-Informed Communication and De-escalation
+Communication,comms_communication_in_emergencies,6,Communication in Emergencies
+Communication,comms_post_test,7,Post Test

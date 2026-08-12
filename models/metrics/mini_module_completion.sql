@@ -18,8 +18,10 @@ select
     sp.day         as day,
     mm.module_name as module_name,
     mm.mini_module as mini_module,
-    replaceRegexpOne(mm.mini_module, '^[a-z]+_', '') as lesson_label,
+    coalesce(mmap.lesson_title, replaceRegexpOne(mm.mini_module, '^[a-z]+_', '')) as lesson_label,
     coalesce(mmap.lesson_order, 999)                 as lesson_order,
+    (multiIf(mm.module_name = 'PPH', 1, mm.module_name = 'APH', 2, mm.module_name = 'RMC', 3, mm.module_name = 'Communication', 4, 9) * 100
+        + coalesce(mmap.lesson_order, 999))          as lesson_sort,
     countIf(lc.start_date <= sp.day)                          as cumulative_started,
     countIf(lc.completed = 1 and lc.complete_date <= sp.day)  as cumulative_completed,
     coalesce(round(countIf(lc.completed = 1 and lc.complete_date <= sp.day)
@@ -28,5 +30,5 @@ from spine sp
 cross join minis mm
 left join lc   on lc.module_name = mm.module_name and lc.mini_module = mm.mini_module
 left join {{ ref('mini_module_map') }} mmap on mm.module_name = mmap.module_name and mm.mini_module = mmap.mini_module
-group by sp.day, mm.module_name, mm.mini_module, mmap.lesson_order
+group by sp.day, mm.module_name, mm.mini_module, mmap.lesson_title, mmap.lesson_order
 order by mm.module_name, mmap.lesson_order, sp.day

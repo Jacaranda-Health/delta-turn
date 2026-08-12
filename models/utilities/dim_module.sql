@@ -5,5 +5,15 @@
 -- module-grained fact (module_completion_daily, mini_module_completion_daily,
 -- module_progression_daily) without fact-to-fact relationships or ambiguous
 -- paths through dim_date.
-select distinct module_name
+-- module_order gives the canonical module sequence for BI (sort module_name by it);
+-- matches the module rank used in lesson_sort.
+select distinct
+    module_name,
+    multiIf(
+        module_name = 'PPH',           1,
+        module_name = 'APH',           2,
+        module_name = 'RMC',           3,
+        module_name = 'Communication', 4,
+        9
+    ) as module_order
 from {{ ref('int_lesson_completion') }}

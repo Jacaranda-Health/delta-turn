@@ -7,3 +7,21 @@ seeds:
     columns:
       - name: mini_module
         data_tests: [not_null, unique]
+  - name: excluded_contacts
+    description: >
+      Manual exclusion list — contact_ids to filter out beyond the rule-based flags
+      (SYSTEM_TESTER / blocked / opted-out). Unioned into int_contact_profile.is_excluded.
+    config:
+      column_types:
+        contact_id: String
+    columns:
+      - name: contact_id
+        data_tests: [not_null]
+  - name: cadre_map
+    description: >
+      Canonical cadre labels. Maps the normalized (upper, de-underscored) raw cadre
+      to its display label. Product team edits this to add/rename cadres; anything
+      not listed falls back to "Other Cadre not listed" in int_contact_profile.
+    columns:
+      - name: cadre_raw
+        data_tests: [not_null, unique]
