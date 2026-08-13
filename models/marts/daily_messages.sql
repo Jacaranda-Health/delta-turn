@@ -1,11 +1,11 @@
 -- ============================================================
--- fct_message_daily  (mart)
+-- daily_messages  (mart)
 -- Purpose : Per-learner daily message counts + delivery status, so profile slicers
---           (dim_learner: learner_type / cadre / facility / county) can filter
+--           (learners: learner_type / cadre / facility / county) can filter
 --           message volume AND System Health (success rate, downtime). Relate
---           contact_id -> dim_learner and day -> dim_date.
+--           contact_id -> learners and day -> dates.
 -- Grain   : One row per (contact, day). contact_id may be null (unattributed).
--- Source  : int_message_events + int_message_status.
+-- Source  : message_events + message_status.
 -- Note    : status_rank/any_error come via a LEFT JOIN; unmatched default to 0
 --           (ClickHouse), which is the correct "no status" reading.
 -- ============================================================
@@ -21,8 +21,8 @@ with events as (
         e.message_id,
         coalesce(s.status_rank, 0) as status_rank,
         coalesce(s.any_error, 0)   as any_error
-    from {{ ref('int_message_events') }} e
-    left join {{ ref('int_message_status') }} s on e.message_id = s.message_id
+    from {{ ref('message_events') }} e
+    left join {{ ref('message_status') }} s on e.message_id = s.message_id
 ),
 
 daily as (
@@ -47,7 +47,10 @@ select
     inbound_msgs,
     delivered_msgs,
     sent_msgs,
-    failed_msgs
+    failed_msgs,
+    -- true for messages on/after go-live; filter volume/System Health on this to
+    -- keep post-go-live traffic only (learner_type bounds the person, this bounds the date)
+    (day >= toDate('{{ var("go_live_date", "2026-08-11") }}')) as is_post_golive
 from (
     select *, coalesce(contact_id, '(unattributed)') as contact_key
     from daily

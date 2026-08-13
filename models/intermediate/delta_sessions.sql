@@ -2,12 +2,12 @@
 
 with inbound as (
     select message_id, user_key, contact_id, event_ts as in_ts
-    from {{ ref('int_message_events') }}
+    from {{ ref('message_events') }}
     where direction = 'inbound' and user_key != '' and event_ts is not null
 ),
 outbound as (
     select user_key, event_ts as out_ts
-    from {{ ref('int_message_events') }}
+    from {{ ref('message_events') }}
     where direction = 'outbound' and user_key != '' and event_ts is not null
 )
 select

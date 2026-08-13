@@ -34,6 +34,8 @@ vars:
   # Exclusion switch: OFF during test phase so the dashboard stays populated.
   # Flip to true at go-live (Aug 11 2026) to drop test/blocked/seed contacts.
   apply_contact_exclusions: false
+  # Go-live date: a "Live" learner is a non-test contact enrolled on/after this date.
+  go_live_date: '2026-08-11'
 models:
   delta_turn:
     +materialized: table

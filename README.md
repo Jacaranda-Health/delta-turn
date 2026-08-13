@@ -30,10 +30,10 @@ uses a word-boundary regex (`\baph`) so it never matches "provider_demogr**aph**
 ```
 packages.yml               dbt_utils
 models/
-  staging/       stg_turn__*     deduped tables over the raw Turn sources (explicit columns)
-  intermediate/  int_flow_responses, int_module_responses,
-                 int_message_events, int_message_status, int_delta_sessions
-  utilities/     dim_date, dim_month        date/month spines (dbt_utils.date_spine)
+  staging/       contacts, messages, flow_results_*     deduped, native-JSON tables over the raw Turn sources
+  intermediate/  flow_responses, module_responses,
+                 message_events, message_status, delta_sessions
+  utilities/     dates, months        date/month spines (dbt_utils.date_spine)
   metrics/       daily_kpis, module_completion     ALL aggregation lives here
   marts/         delta_kpis_daily, module_completion_daily, session_latency
 macros/          generate_schema_name        forces every model into dev_munene
@@ -116,7 +116,7 @@ parents. Use it whenever a change needs to reach the marts Power BI reads.
 - **Dedup:** staging keeps the latest row per key (`limit 1 by <key>`) on
   `ReplacingMergeTree` tables. Keep this even if upstream dedup is fixed — it's what
   protected the metrics while the raw feed was ~5× duplicated.
-- **Gap-free days:** `dim_date` provides the daily spine, so every day in the active
+- **Gap-free days:** `dates` provides the daily spine, so every day in the active
   range has a row. **Counts are 0-filled; latency is NULL** on days with no replied
   sessions (0 seconds would be a false reading and skews averages).
 - **Rates are decimal ratios (0–1)**, never percentages — `0.308`, not `30.8`. The `%`
@@ -134,7 +134,7 @@ parents. Use it whenever a change needs to reach the marts Power BI reads.
 
 - Staging keys: `not_null` + `unique` on `id` / `row_hash` / `page_id`.
 - `module_name` / `direction`: `accepted_values`.
-- `int_message_events.event_ts`: `not_null` — guards against upstream type drift
+- `message_events.event_ts`: `not_null` — guards against upstream type drift
   silently breaking the epoch parse.
 - `assert_latency_non_negative` (**error**) — a negative latency would mean a backward
   ASOF match.

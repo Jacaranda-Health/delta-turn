@@ -2,7 +2,7 @@
 -- module_completion  (metric)
 -- Purpose : Daily module completion + progress per canonical module.
 -- Grain   : One row per module per day.
--- Source  : int_lesson_completion, dim_date.
+-- Source  : lesson_completion, dates.
 -- Logic   : posttest_completion_rate = contacts who completed the module's POST-TEST
 --                              ÷ started. HEADLINE "module completed" metric shown to
 --                              stakeholders (finishing the terminal assessment =
@@ -17,7 +17,7 @@
 --            is identified by mini_module matching '%post_test%'.
 -- ============================================================
 
-with lc as (select * from {{ ref('int_lesson_completion') }}),
+with lc as (select * from {{ ref('lesson_completion') }}),
 module_lessons as (select module_name, uniqExact(mini_module) as total_lessons from lc group by module_name),
 posttest as (                          -- when each contact finished the module's post-test
     select module_name, contact_id,
@@ -27,7 +27,7 @@ posttest as (                          -- when each contact finished the module'
     group by module_name, contact_id
 ),
 bounds as (select min(start_date) as s, max(start_date) as e from lc),
-spine  as (select date_day as day from {{ ref('dim_date') }} cross join bounds where date_day between s and e),
+spine  as (select date_day as day from {{ ref('dates') }} cross join bounds where date_day between s and e),
 contact_day as (
     select sp.day, lc.module_name, lc.contact_id,
            uniqExactIf(lc.mini_module, lc.completed = 1 and lc.complete_date <= sp.day) as lessons_done

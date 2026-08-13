@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: int_message_events
+  - name: message_events
     description: One row per message with normalized direction and user key.
     columns:
       - name: id
@@ -22,11 +22,11 @@ models:
           - not_null
       - name: user_key
         description: Normalized phone/wa_id shared across inbound and outbound.
-  - name: int_module_responses
+  - name: module_responses
     description: Flow responses classified into the 4 canonical DELTA modules.
     columns:
       - name: id
-        description: Surrogate key of (package_id, response_row_id) — same grain as int_flow_responses.
+        description: Surrogate key of (package_id, response_row_id) — same grain as flow_responses.
         data_tests:
           - not_null
           - unique
@@ -36,7 +36,7 @@ models:
           - accepted_values:
               arguments:
                 values: ['PPH', 'Communication', 'RMC', 'APH']
-  - name: int_flow_responses
+  - name: flow_responses
     description: Unnested Flow Results — one row per answered question.
     columns:
       - name: id
@@ -44,7 +44,7 @@ models:
         data_tests:
           - not_null
           - unique
-  - name: int_message_status
+  - name: message_status
     description: Furthest delivery status per message id.
     columns:
       - name: id
@@ -52,7 +52,7 @@ models:
         data_tests:
           - not_null
           - unique
-  - name: int_delta_sessions
+  - name: delta_sessions
     description: >
       Response latency per inbound user trigger via ASOF join to the first outbound
       reply at/after the trigger. Grain: one row per inbound message_id.
@@ -62,7 +62,7 @@ models:
         data_tests:
           - not_null
           - unique
-  - name: int_lesson_completion
+  - name: lesson_completion
     description: >
       Lesson completion status per contact and module by day.
     columns:
@@ -74,11 +74,11 @@ models:
       - name: contact_id
         data_tests: [not_null]
       - name: module_name
-  - name: int_contact_profile
+  - name: contact_profile
     description: >
       RESTRICTED — CONTAINS PII (phone + names). One row per contact with profile
       attributes unnested from Turn's details JSON. The only model holding direct
-      identifiers; Power BI reads dim_learner instead. Restrict grants on this schema.
+      identifiers; Power BI reads learners instead. Restrict grants on this schema.
     columns:
       - name: contact_id
         description: Turn numeric contact id (matches the flow-response contact_id).

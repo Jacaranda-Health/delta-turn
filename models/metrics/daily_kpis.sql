@@ -2,9 +2,9 @@
 -- daily_kpis  (metric)
 -- Purpose : Daily product & engagement KPIs — enrolled users, message success,
 --           downtime, response latency.
--- Grain   : One row per calendar day (gap-free via dim_date spine).
--- Source  : int_flow_responses, int_message_events, int_message_status,
---           int_delta_sessions, dim_date.
+-- Grain   : One row per calendar day (gap-free via dates spine).
+-- Source  : flow_responses, message_events, message_status,
+--           delta_sessions, dates.
 -- Notes   : Counts are 0-filled on quiet days; rates & latency are NULL (not 0),
 --           since a rate/median of no activity is undefined. Rates are 0–1 ratios.
 -- ============================================================
@@ -13,15 +13,15 @@
 
 with enroll as (
     select contact_id, min(toDate(response_ts)) as enroll_day
-    from {{ ref('int_flow_responses') }}
+    from {{ ref('flow_responses') }}
     group by contact_id
 ),
 out_msg as (
     select e.day, e.message_id,
         coalesce(s.status_rank, 0) as status_rank,
         coalesce(s.any_error, 0)   as any_error
-    from {{ ref('int_message_events') }} e
-    left join {{ ref('int_message_status') }} s on e.message_id = s.message_id
+    from {{ ref('message_events') }} e
+    left join {{ ref('message_status') }} s on e.message_id = s.message_id
     where e.direction = 'outbound'
 ),
 msg_daily as (
@@ -34,7 +34,7 @@ msg_daily as (
 ),
 lat_daily as (
     select day, round(median(latency_seconds)) as median_latency_seconds
-    from {{ ref('int_delta_sessions') }}
+    from {{ ref('delta_sessions') }}
     where latency_seconds between 0 and {{ var('max_reply_window_seconds', 3600) }}
     group by day
 ),
@@ -45,7 +45,7 @@ bounds as (
 ),
 spine as (
     select d.date_day as day
-    from {{ ref('dim_date') }} d
+    from {{ ref('dates') }} d
     cross join bounds b
     where d.date_day between b.start_day and b.end_day
 ),

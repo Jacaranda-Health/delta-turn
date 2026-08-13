@@ -8,7 +8,7 @@ with status_rolled as (
         id as message_id,
         max(multiIf(status='read', 3, status='delivered', 2, status='sent', 1, 0)) as status_rank,
         max(if(errors is not null and errors != '', 1, 0))                          as any_error
-    from {{ ref('stg_turn__message_statuses') }}
+    from {{ ref('message_statuses') }}
     where id is not null
     group by id
 )

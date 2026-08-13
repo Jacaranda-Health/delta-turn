@@ -4,7 +4,7 @@
 --           plus whether the contact completed the module's post-test. Contact
 --           grain, so BI can slice module completion by profile (cadre/facility).
 -- Grain   : One row per (module, contact).
--- Source  : int_lesson_completion.
+-- Source  : lesson_completion.
 -- ============================================================
 
 {{ config(order_by='(module_name)') }}
@@ -15,5 +15,5 @@ select
     uniqExact(mini_module)                             as lessons_started,
     uniqExactIf(mini_module, completed = 1)            as lessons_completed,
     maxIf(completed, mini_module ILIKE '%post_test%')  as posttest_completed
-from {{ ref('int_lesson_completion') }}
+from {{ ref('lesson_completion') }}
 group by module_name, contact_id

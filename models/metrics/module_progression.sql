@@ -1,7 +1,7 @@
 {{ config(order_by='(module_name, lessons_completed)') }}
 
 with src as (
-    select * from {{ ref('int_module_responses') }} where mini_module is not null
+    select * from {{ ref('module_responses') }} where mini_module is not null
 ),
 mini_questions as (
     select module_name, mini_module, uniqExact(question_key) as total_q

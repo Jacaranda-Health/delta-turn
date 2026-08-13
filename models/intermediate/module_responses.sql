@@ -3,9 +3,9 @@
 with resp as (
     select
         r.*,
-        JSONExtractString(toString(pk.attributes), 'title') as title
-    from {{ ref('int_flow_responses') }} r
-    left join {{ ref('stg_turn__flow_results_packages') }} pk
+        CAST(pk.attributes.title AS String) as title
+    from {{ ref('flow_responses') }} r
+    left join {{ ref('flow_results_packages') }} pk
         on r.package_id = pk.id
 ),
 

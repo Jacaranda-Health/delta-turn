@@ -4,8 +4,8 @@
 select
     m.id                  as message_id,
     toString(m.timestamp) as raw_timestamp
-from {{ ref('stg_turn__messages') }} m
-inner join {{ ref('int_message_events') }} e
+from {{ ref('messages') }} m
+inner join {{ ref('message_events') }} e
     on m.id = e.message_id
 where m.timestamp is not null
   and toString(m.timestamp) != ''
