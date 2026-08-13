@@ -1,35 +1,35 @@
 version: 2
 
 models:
-  - name: stg_turn__contacts
+  - name: contacts
     description: Deduped Turn contacts (latest row per id).
     columns:
       - name: id
         description: Stable numeric contact id.
         data_tests: [not_null, unique]
 
-  - name: stg_turn__messages
+  - name: messages
     description: Deduped WhatsApp messages (latest per message id).
     columns:
       - name: id
         description: WhatsApp message id.
         data_tests: [not_null, unique]
 
-  - name: stg_turn__message_statuses
+  - name: message_statuses
     description: Deduped delivery statuses (latest per row_hash).
     columns:
       - name: row_hash
         description: Hash of the full status row (dedup key for redelivered webhooks).
         data_tests: [not_null, unique]
 
-  - name: stg_turn__flow_results_packages
+  - name: flow_results_packages
     description: Deduped flow definitions (latest per id).
     columns:
       - name: id
         description: Flow package id.
         data_tests: [not_null, unique]
 
-  - name: stg_turn__flow_results_responses
+  - name: flow_results_responses
     description: Deduped response pages (latest per page_id).
     columns:
       - name: page_id

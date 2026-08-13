@@ -1,5 +1,5 @@
 -- ============================================================
--- int_lesson_completion  (intermediate)
+-- lesson_completion  (intermediate)
 -- Purpose : Single source of truth for lesson completion. All completion metrics
 --           (mini_module, module, progression, contact progress) read from here.
 -- Grain   : One row per (module, mini_module, contact).
@@ -13,7 +13,7 @@
 
 with src as (
     select *
-    from {{ ref('int_module_responses') }}
+    from {{ ref('module_responses') }}
     where mini_module is not null
       and contact_id is not null
       and contact_id != ''

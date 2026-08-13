@@ -2,9 +2,9 @@
 -- learner_lesson_completion  (mart)
 -- Purpose : Per-learner lesson completion. Contact-grain so the Lesson Completion
 --           table can be sliced by profile (cadre / facility / county) via
---           dim_learner. Relate contact_id -> dim_learner, module_name -> dim_module.
+--           learners. Relate contact_id -> learners, module_name -> modules.
 -- Grain   : One row per (module, lesson, contact).
--- Source  : int_lesson_completion.
+-- Source  : lesson_completion.
 -- ============================================================
 
 select
@@ -16,6 +16,6 @@ select
     (multiIf(lc.module_name = 'PPH', 1, lc.module_name = 'APH', 2, lc.module_name = 'RMC', 3, lc.module_name = 'Communication', 4, 9) * 100
         + coalesce(mmap.lesson_order, 999))          as lesson_sort,
     lc.completed
-from {{ ref('int_lesson_completion') }} lc
+from {{ ref('lesson_completion') }} lc
 left join {{ ref('mini_module_map') }} mmap
     on lc.module_name = mmap.module_name and lc.mini_module = mmap.mini_module

@@ -1,12 +1,12 @@
 {{ config(materialized='table', engine='MergeTree', order_by='contact_id') }}
 
 -- ============================================================
--- dim_learner  (dimension — BI-SAFE, NO PII)
+-- learners  (dimension — BI-SAFE, NO PII)
 -- Purpose : Learner dimension for Power BI. Relates to the facts on contact_id
---           (like dim_module / dim_date), enabling facility / county / cadre
+--           (like modules / dates), enabling facility / county / cadre
 --           slicers and exclusion of test accounts. Holds NO phone or names.
 -- Grain   : One row per contact.
--- Source  : int_contact_profile (identifiers stripped here).
+-- Source  : contact_profile (identifiers stripped here).
 -- ============================================================
 
 select
@@ -17,5 +17,10 @@ select
     facility_raw                  as facility,
     learning_path,
     toStartOfMonth(enrollment_at) as enrolled_month,
-    is_excluded
-from {{ ref('int_contact_profile') }}
+    is_excluded,
+    -- Live/Test toggle: Live = a genuine learner (not test) enrolled ON/AFTER go-live.
+    -- Testers, seed-excluded, and pre-go-live (test-phase) enrolments are all 'Test'.
+    if(not is_excluded
+       and toDate(enrollment_at) >= toDate('{{ var("go_live_date", "2026-08-11") }}'),
+       'Live', 'Test')              as learner_type
+from {{ ref('contact_profile') }}

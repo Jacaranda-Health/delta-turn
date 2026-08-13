@@ -4,7 +4,7 @@ models:
   - name: daily_kpis
     description: >
       Daily DELTA product & engagement KPIs — one row per calendar day across the
-      active data range (gap-free via dim_date). Aggregation layer feeding the
+      active data range (gap-free via dates). Aggregation layer feeding the
       delta_kpis_daily mart.
     columns:
       - name: id
@@ -13,7 +13,7 @@ models:
           - not_null
           - unique
       - name: day
-        description: Calendar date from the dim_date spine; every day present, no gaps.
+        description: Calendar date from the dates spine; every day present, no gaps.
         data_tests: [not_null, unique]
       - name: enrolled_cumulative
         description: >
@@ -50,7 +50,7 @@ models:
           - not_null
           - unique
       - name: day
-        description: Calendar date (dim_date spine).
+        description: Calendar date (dates spine).
         data_tests: [not_null]
       - name: module_name
         description: Canonical module.

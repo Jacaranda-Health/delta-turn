@@ -8,7 +8,7 @@ with raw as (
         `to`,
         -- works whether Airbyte types this as String or Decimal/numeric
         toFloat64OrNull(toString(timestamp)) as ts_epoch
-    from {{ ref('stg_turn__messages') }}
+    from {{ ref('messages') }}
 ),
 
 parsed as (
@@ -45,7 +45,7 @@ prof as (
         replaceRegexpAll(phone, '[^0-9]', '') as phone_key,
         any(contact_id)  as contact_id,
         max(is_excluded) as is_excluded
-    from {{ ref('int_contact_profile') }}
+    from {{ ref('contact_profile') }}
     where phone != ''
     group by phone_key
 ),
