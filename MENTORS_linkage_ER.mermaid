@@ -1,0 +1,68 @@
+erDiagram
+    DELTA_CONTACT }o--|| PHONE_REGISTRY : "wa_id / meta resolves to"
+    USERS ||--o{ PHONE_REGISTRY : "phone history (1 active)"
+    USERS ||--o{ MENTEES : "is a"
+    GEO_LEVELS ||--o{ LOCATIONS : "classifies"
+    LOCATIONS ||--o{ MENTEES : "based at"
+    MENTEES ||--o{ TRAINING_SESSIONS : "attends (in-person)"
+    MENTEES ||--o{ MINI_MODULE_SESSIONS : "completes (DELTA)"
+    MENTEES ||--o{ MODULE_ASSESSMENTS : "assessed in"
+    MENTEES ||--o{ CERTIFICATIONS : "earns"
+
+    DELTA_CONTACT {
+        string contact_id
+        string whatsapp_id "wa_id / phone"
+    }
+    PHONE_REGISTRY {
+        uuid phone_registry_id PK "NEW"
+        uuid user_id FK
+        string meta_id
+        string phone_number
+        bool is_active "one per user"
+        timestamp valid_from
+        timestamp valid_to
+        enum source_channel "delta / in_person / both"
+        enum verification_status
+    }
+    USERS {
+        uuid id PK
+        string name
+        string phone_number "current"
+        bool staff
+    }
+    MENTEES {
+        uuid id PK
+        uuid user_id FK
+        uuid location_id FK
+        date start_date
+        date end_date
+    }
+    LOCATIONS {
+        uuid id PK
+        uuid geo_level_id FK
+        string name
+    }
+    GEO_LEVELS {
+        uuid id PK
+        string level
+        string name
+    }
+    TRAINING_SESSIONS {
+        uuid id PK
+        uuid mentee_id FK
+        uuid module_id FK
+    }
+    MINI_MODULE_SESSIONS {
+        uuid id PK
+        uuid mentee_id FK
+        uuid mini_module_id FK
+        decimal post_test_score
+    }
+    MODULE_ASSESSMENTS {
+        uuid id PK
+        uuid mentee_id FK
+    }
+    CERTIFICATIONS {
+        uuid id PK
+        uuid mentee_id FK
+    }
